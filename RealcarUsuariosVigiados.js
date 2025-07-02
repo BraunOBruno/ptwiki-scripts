@@ -19,15 +19,21 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 	let watched = new Set();
 	let lastRawList = '';
 	
+	let highlighted = new Set();
+	
 	function notify(message, options = {}) {
 		mw.notify(
-			$('<span>').append(
-				'[', $('<a>')
-					.attr('href', mw.util.getUrl('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js'))
-					.text('RUVNMR.js'),
-				'] ',
-				message
-			),
+			$('<span>')
+				.append(
+					'[', 
+					$('<a>')
+						.attr('href', mw.util.getUrl('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js'))
+						.text('RUVNMR.js'),
+					'] '
+				)
+				.append(
+					$('<span>').html(message.replace(/\n/g, '<br>'))
+				),
 			Object.assign(
 				{
 					tag: 'html',
@@ -37,11 +43,14 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 			)
 		);
 	}
-	
+
 	function debug(...args) {
-		if (window.wuchighlightDEBUG) {
+		const hasForce = typeof args[0] === 'boolean';
+		const force = hasForce ? args.shift() : false;
+		
+		if (window.wuchighlightDEBUG || force) {
 			console.log('[RealçarUsuáriosVigiadosNasMRs]', ...args);
-			notify(args.join(' '));
+			notify(args.join(' '), { autoHide: force ? false : undefined });
 		}
 	}
 	
@@ -129,9 +138,11 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 			if (watched.has(user)) {
 				link.classList.add(HIGHLIGHT_CLASS);
 				debug(`Realçado: ${user}`);
+				highlighted.add(user);
 			} else if (link.classList.contains(HIGHLIGHT_CLASS)) {
 				link.classList.remove(HIGHLIGHT_CLASS);
 				debug(`Realce removido: ${user}`);
+				highlighted.delete(user);
 			}
 		});
 	}
@@ -154,7 +165,7 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 					node.querySelector &&
 					node.querySelector('a.mw-userlink')
 				) {
-					debug('Novo nó relevante detectado:', node);
+					//debug('Novo nó relevante detectado:', node);
 					highlightUsers(node);
 				}
 			}
@@ -189,6 +200,15 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 		return result;
 	};
 	
+	window.listarRealces = function() {
+	    let msg = 'Vigiados: \n' + [...watched].join('\n');
+	    if (highlighted.size > 0) {
+	        msg += '\nRealçados: \n' + [...highlighted].join('\n');
+	    }
+	    debug(true, msg);
+	};
+
+
 	window.addEventListener('beforeunload', () => {
 		clearInterval(pollingInterval);
 		observer.disconnect();
