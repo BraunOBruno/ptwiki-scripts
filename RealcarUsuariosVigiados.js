@@ -144,6 +144,22 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 			resolve();
 		});
 	}
+	
+	function highlightNode(node) {
+		const userLinks = node.querySelectorAll('a.mw-userlink');
+		userLinks.forEach(link => {
+			const user = link.textContent.trim();
+			if (watched.has(user)) {
+				link.classList.add(HIGHLIGHT_CLASS);
+				debug(`Realçado: ${user}`);
+				highlighted.add(user);
+			} else if (link.classList.contains(HIGHLIGHT_CLASS)) {
+				link.classList.remove(HIGHLIGHT_CLASS);
+				debug(`Realce removido: ${user}`);
+				highlighted.delete(user);
+			}
+		});
+	}
 
 	
 	function classeProcurada() {
@@ -175,7 +191,7 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 					node.querySelector('a.mw-userlink')
 				) {
 					//debug('Novo nó relevante detectado:', node);
-					highlightUsers(node);
+					highlightNode(node);
 				}
 			}
 		}
