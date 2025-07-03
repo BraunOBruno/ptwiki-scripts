@@ -123,29 +123,28 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 	
 	loadWatchedUsers();
 	
-	if (watched.size === 0) {
-		notify('Nenhum usuário está sendo vigiado no momento.', {autoHideSeconds: 3});
-	} else {
-		notify('Usuários com contribuições vigiadas serão realçados.', {autoHideSeconds: 3});
-	}
-	
-	function highlightUsers(node) {
-		if (!node.querySelectorAll) return;
-		
-		const userLinks = node.querySelectorAll('a.mw-userlink');
-		userLinks.forEach(link => {
-			const user = link.textContent.trim();
-			if (watched.has(user)) {
-				link.classList.add(HIGHLIGHT_CLASS);
-				debug(`Realçado: ${user}`);
-				highlighted.add(user);
-			} else if (link.classList.contains(HIGHLIGHT_CLASS)) {
-				link.classList.remove(HIGHLIGHT_CLASS);
-				debug(`Realce removido: ${user}`);
-				highlighted.delete(user);
-			}
+	function highlightUsers(classe) {
+		return new Promise((resolve) => {
+			const elementos = document.querySelectorAll(classe);
+			elementos.forEach(node => {
+				const userLinks = node.querySelectorAll('a.mw-userlink');
+				userLinks.forEach(link => {
+					const user = link.textContent.trim();
+					if (watched.has(user)) {
+						link.classList.add(HIGHLIGHT_CLASS);
+						debug(`Realçado: ${user}`);
+						highlighted.add(user);
+					} else if (link.classList.contains(HIGHLIGHT_CLASS)) {
+						link.classList.remove(HIGHLIGHT_CLASS);
+						debug(`Realce removido: ${user}`);
+						highlighted.delete(user);
+					}
+				});
+			});
+			resolve();
 		});
 	}
+
 	
 	function classeProcurada() {
 		if (pgName === "Especial:Página_em_branco/RTRC") {
@@ -155,8 +154,18 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 		}
 	}
 	
-	document.querySelectorAll(classeProcurada()).forEach(highlightUsers);
-	
+	highlightUsers(classeProcurada()).then(()=>{
+		if (watched.size === 0) {
+			notify('Nenhum usuário está sendo vigiado no momento.', {autoHideSeconds: 3});
+		} else {
+			let msg = 'Usuários com contribuições vigiadas serão realçados.';
+			if(highlighted.size > 0){
+				msg += '\n Realçes presentes:\n' + [...highlighted].join('\n');
+			}
+			notify(msg, highlighted.size > 0 ? {autoHide: false} : {autoHideSeconds: 3});
+		}
+	});
+
 	const observer = new MutationObserver(mutations => {
 		for (const mutation of mutations) {
 			for (const node of mutation.addedNodes) {
