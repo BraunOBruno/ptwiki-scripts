@@ -176,7 +176,7 @@ importScript('Usuário:BraunOBruno/Scripts/RealçarUsuáriosVigiadosNasMRs.js') 
 		} else {
 			let msg = 'Usuários com contribuições vigiadas serão realçados.';
 			if(highlighted.size > 0){
-				msg += '\n Realçes presentes:\n' + [...highlighted].join('\n');
+				msg += '\n Realces presentes:\n' + [...highlighted].join('\n');
 			}
 			notify(msg, highlighted.size > 0 ? {autoHide: false} : {autoHideSeconds: 3});
 		}
